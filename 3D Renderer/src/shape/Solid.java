@@ -1,20 +1,33 @@
 package shape;
 
+import java.awt.Color;
 import java.util.ArrayList;
 
 import node.*;
 
 public class Solid {
-	public ArrayList<Vertex> verticies;
 	public ArrayList<Triangle> triangles;
+	public Color defaultColor;
 
 	public Solid() {
-		verticies = new ArrayList<>();
-		triangles = new ArrayList<>();
+		this(new ArrayList<Triangle>());
 	}
-	
-	public Solid(ArrayList<Vertex> verticies, ArrayList<Triangle> triangles) {
-		this.verticies = verticies;
+
+	public Solid(ArrayList<Triangle> triangles) {
+		this(triangles, Color.WHITE);
+	}
+
+	public Solid(ArrayList<Triangle> triangles, Color defaultColor) {
 		this.triangles = triangles;
+		this.defaultColor = defaultColor;
 	}
+
+	public void addTriangle(double[][] verticies) {
+		addTriangle(verticies, defaultColor);
+	}
+
+	public void addTriangle(double[][] verticies, Color color) {
+		triangles.add(new Triangle(verticies, color));
+	}
+
 }

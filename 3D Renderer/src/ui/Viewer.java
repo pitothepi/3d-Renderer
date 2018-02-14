@@ -3,6 +3,8 @@ package ui;
 import javax.swing.*;
 import java.awt.*;
 
+import shape.Solid;
+
 public class Viewer {
 	public static void main(String[] args) {
 		JFrame frame = new JFrame();
@@ -33,5 +35,8 @@ public class Viewer {
 
 		frame.setSize(400, 400);
 		frame.setVisible(true);
+		
+
 	}
+	
 }
