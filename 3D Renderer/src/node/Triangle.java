@@ -3,10 +3,10 @@ package node;
 import java.awt.Color;
 
 public class Triangle {
-	Vertex v1;
-	Vertex v2;
-	Vertex v3;
-	Color color;
+	public Vertex v1;
+	public Vertex v2;
+	public Vertex v3;
+	public Color color;
 
 	public Triangle(Vertex v1, Vertex v2, Vertex v3, Color color) {
 		this(new double[][] { { v1.x, v1.y, v1.z }, { v2.x, v2.y, v2.z }, { v3.x, v3.y, v3.z } }, color);

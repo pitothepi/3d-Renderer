@@ -22,6 +22,10 @@ public class Solid {
 		this.defaultColor = defaultColor;
 	}
 
+	public Solid(Color defaultColor) {
+		this(new ArrayList<Triangle>(), defaultColor);
+	}
+
 	public void addTriangle(double[][] verticies) {
 		addTriangle(verticies, defaultColor);
 	}
@@ -29,5 +33,4 @@ public class Solid {
 	public void addTriangle(double[][] verticies, Color color) {
 		triangles.add(new Triangle(verticies, color));
 	}
-
 }
