@@ -28,4 +28,24 @@ public class Triangle {
 		this.v3 = new Vertex(verticies[2]);
 		this.color = color;
 	}
+
+	public Triangle(Triangle triangle) {
+		this.v1 = triangle.v1;
+		this.v2 = triangle.v2;
+		this.v3 = triangle.v3;
+		this.color = new Color(triangle.color.getRed(), triangle.color.getGreen(), triangle.color.getBlue());
+	}
+
+	public Vertex getNorm() {
+		// take cross product of 2 edges of triangle
+		Vertex ab = new Vertex(v2.x - v1.x, v2.y - v1.y, v2.z - v1.z);
+        Vertex ac = new Vertex(v3.x - v1.x, v3.y - v1.y, v3.z - v1.z);
+		Vertex norm = new Vertex(
+		         ab.y * ac.z - ab.z * ac.y,
+		         ab.z * ac.x - ab.x * ac.z,
+		         ab.x * ac.y - ab.y * ac.x);
+		// make unit vector
+		double normalLength = Math.sqrt(norm.x * norm.x + norm.y * norm.y + norm.z * norm.z);
+		return new Vertex(norm.x / normalLength, norm.y / normalLength, norm.z / normalLength);
+	}
 }
