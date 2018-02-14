@@ -48,4 +48,16 @@ public class Triangle {
 		double normalLength = Math.sqrt(norm.x * norm.x + norm.y * norm.y + norm.z * norm.z);
 		return new Vertex(norm.x / normalLength, norm.y / normalLength, norm.z / normalLength);
 	}
+
+	public void expand(double ratio) {
+		v1.x *= ratio;
+		v1.y *= ratio;
+		v1.z *= ratio;
+		v2.x *= ratio;
+		v2.y *= ratio;
+		v2.z *= ratio;
+		v3.x *= ratio;
+		v3.y *= ratio;
+		v3.z *= ratio;
+	}
 }

@@ -2,23 +2,22 @@ package ui;
 
 import javax.swing.*;
 
+import io.STL;
 import node.Triangle;
 import node.Vertex;
 import node.ZPair;
 
 import java.awt.*;
-import java.awt.geom.Path2D;
-import java.io.ObjectInputStream.GetField;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 
 import shape.Solid;
 
 public class Viewer {
 	public static void main(String[] args) {
+		Solid shape = STL.readBinarySTL("models/keycap.stl", Color.WHITE);
+		
 		JFrame frame = new JFrame();
 		Container pane = frame.getContentPane();
 		pane.setLayout(new BorderLayout());
@@ -34,46 +33,59 @@ public class Viewer {
 		// panel to display render results
 		JPanel renderPanel = new JPanel() {
 			private static final long serialVersionUID = 1L;
-
+			
+			double oldShapeSize = -1;
+			
 			public void paintComponent(Graphics g) {
+				double shapeSize = getWidth() < getHeight() ? getWidth() : getHeight();
+				
+				if (shapeSize != oldShapeSize) {
+					oldShapeSize = shapeSize;
+					double[] bounds = shape.getBounds();
+					double sizeRatio = getSizeRatio(shapeSize, bounds);
+					shape.expand(sizeRatio);
+				}
+				
 				Graphics2D g2 = (Graphics2D) g;
 				g2.setColor(Color.BLACK);
 				g2.fillRect(0, 0, getWidth(), getHeight());
 
 				// rendering magic will happen here
-				double shapeSize = getWidth() < getHeight() ? getWidth() : getHeight();
-				shapeSize = shapeSize / 3.5;
-				Solid tetrahedron = new Solid();
-				tetrahedron
-						.addTriangle(
-								new double[][] { { shapeSize, shapeSize, shapeSize },
-										{ -shapeSize, -shapeSize, shapeSize }, { -shapeSize, shapeSize, -shapeSize } },
-								Color.WHITE);
-				tetrahedron
-						.addTriangle(
-								new double[][] { { shapeSize, shapeSize, shapeSize },
-										{ -shapeSize, -shapeSize, shapeSize }, { shapeSize, -shapeSize, -shapeSize } },
-								Color.RED);
-				tetrahedron
-						.addTriangle(
-								new double[][] { { -shapeSize, shapeSize, -shapeSize },
-										{ shapeSize, -shapeSize, -shapeSize }, { shapeSize, shapeSize, shapeSize } },
-								Color.GREEN);
-				tetrahedron
-						.addTriangle(
-								new double[][] { { -shapeSize, shapeSize, -shapeSize },
-										{ shapeSize, -shapeSize, -shapeSize }, { -shapeSize, -shapeSize, shapeSize } },
-								Color.BLUE);
+//				double shapeSize = getWidth() < getHeight() ? getWidth() : getHeight();
+//				shapeSize = shapeSize / 3.5;
+//				Solid tetrahedron = new Solid();
+//				tetrahedron
+//						.addTriangle(
+//								new double[][] { { shapeSize, shapeSize, shapeSize },
+//										{ -shapeSize, -shapeSize, shapeSize }, { -shapeSize, shapeSize, -shapeSize } },
+//								Color.WHITE);
+//				tetrahedron
+//						.addTriangle(
+//								new double[][] { { shapeSize, shapeSize, shapeSize },
+//										{ -shapeSize, -shapeSize, shapeSize }, { shapeSize, -shapeSize, -shapeSize } },
+//								Color.RED);
+//				tetrahedron
+//						.addTriangle(
+//								new double[][] { { -shapeSize, shapeSize, -shapeSize },
+//										{ shapeSize, -shapeSize, -shapeSize }, { shapeSize, shapeSize, shapeSize } },
+//								Color.GREEN);
+//				tetrahedron
+//						.addTriangle(
+//								new double[][] { { -shapeSize, shapeSize, -shapeSize },
+//										{ shapeSize, -shapeSize, -shapeSize }, { -shapeSize, -shapeSize, shapeSize } },
+//								Color.BLUE);
 
+				
+				
 				// transform solid. doing the rotations one at a time is inefficient, but it is
 				// simpler
-				tetrahedron.triangles = inflate(inflate(inflate(tetrahedron.triangles, shapeSize),shapeSize),shapeSize);
+				//tetrahedron.triangles = inflate(inflate(inflate(tetrahedron.triangles, shapeSize),shapeSize),shapeSize);
 				double heading = Math.toRadians(headingSlider.getValue()) * 2;
-				Solid rotatedTetrahedron = tetrahedron.getRotatedSolid(heading, "XY");
+				Solid rotatedShape = shape.getRotatedSolid(heading, "XY");
 				double pitch = Math.toRadians(pitchSlider.getValue()) * 2;
-				rotatedTetrahedron = rotatedTetrahedron.getRotatedSolid(pitch, "YZ");
+				rotatedShape = rotatedShape.getRotatedSolid(pitch, "YZ");
 
-				drawSolid(rotatedTetrahedron, g2);
+				drawSolid(rotatedShape, g2);
 			}
 		};
 		pane.add(renderPanel, BorderLayout.CENTER);
@@ -156,5 +168,14 @@ public class Viewer {
 			}
 		}
 		return result;
+	}
+	
+	public static double getSizeRatio(double size, double[] arrrayToFit) {
+		size = size / 2;
+		ArrayList<Double> bounds = new ArrayList<Double>(arrrayToFit.length);
+		for (Double num : arrrayToFit) {
+			bounds.add(Math.abs(num));
+		}
+		return size / Collections.max(bounds);
 	}
 }
