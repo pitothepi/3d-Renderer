@@ -28,6 +28,7 @@ public class Solid {
 	public Solid(ArrayList<Triangle> triangles, Color defaultColor) {
 		this.triangles = triangles;
 		this.defaultColor = defaultColor;
+		recenter();
 	}
 
 	public Solid(Color defaultColor) {
@@ -95,10 +96,9 @@ public class Solid {
 		updateBounds();
 		return new double[] { minX, maxX, minY, maxY, minZ, maxZ };
 	}
-	
+
 	public void expand(double ratio) {
-		for (Triangle triangle : triangles)
-		{
+		for (Triangle triangle : triangles) {
 			triangle.expand(ratio);
 		}
 	}
@@ -141,6 +141,17 @@ public class Solid {
 				maxZ = triangle.v2.z;
 			if (triangle.v3.z > maxZ)
 				maxZ = triangle.v3.z;
+		}
+	}
+	public void recenter() {
+		double[] bounds = getBounds();
+		double midX = (bounds[0] + bounds[1]) / 2;
+		double midY = (bounds[2] + bounds[3]) / 2;
+		double midZ = (bounds[4] + bounds[5]) / 2;
+		for (int i = 0; i < triangles.size(); i++) {
+			triangles.get(i).v1 = matrixMath.Translate.translate(triangles.get(i).v1, -midX, -midY, -midZ);
+			triangles.get(i).v2 = matrixMath.Translate.translate(triangles.get(i).v2, -midX, -midY, -midZ);
+			triangles.get(i).v3 = matrixMath.Translate.translate(triangles.get(i).v3, -midX, -midY, -midZ);
 		}
 	}
 }

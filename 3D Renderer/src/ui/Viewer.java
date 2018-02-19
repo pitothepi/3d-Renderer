@@ -5,147 +5,33 @@ import javax.swing.*;
 import io.STL;
 import node.Triangle;
 import node.Vertex;
-import node.ZPair;
 
 import java.awt.*;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 
 import shape.Solid;
 
 public class Viewer {
-	public static void main(String[] args) {
-		Solid shape = STL.readBinarySTL("models/keycap.stl", Color.WHITE);
-		
+	private String fileName;
+
+	public Viewer(String fileName) {
+		this.fileName = fileName;
+	}
+
+	public void start() {
+		Solid shape = STL.readBinarySTL(fileName, Color.WHITE);
+
 		JFrame frame = new JFrame();
 		Container pane = frame.getContentPane();
 		pane.setLayout(new BorderLayout());
-
-		// slider to control horizontal rotation
-		JSlider headingSlider = new JSlider(0, 360, 180);
-		pane.add(headingSlider, BorderLayout.SOUTH);
-
-		// slider to control vertical rotation
-		JSlider pitchSlider = new JSlider(SwingConstants.VERTICAL, -90, 90, 0);
-		pane.add(pitchSlider, BorderLayout.EAST);
-
+		
 		// panel to display render results
-		JPanel renderPanel = new JPanel() {
-			private static final long serialVersionUID = 1L;
-			
-			double oldShapeSize = -1;
-			
-			public void paintComponent(Graphics g) {
-				double shapeSize = getWidth() < getHeight() ? getWidth() : getHeight();
-				
-				if (shapeSize != oldShapeSize) {
-					oldShapeSize = shapeSize;
-					double[] bounds = shape.getBounds();
-					double sizeRatio = getSizeRatio(shapeSize, bounds);
-					shape.expand(sizeRatio);
-				}
-				
-				Graphics2D g2 = (Graphics2D) g;
-				g2.setColor(Color.BLACK);
-				g2.fillRect(0, 0, getWidth(), getHeight());
-
-				// rendering magic will happen here
-//				double shapeSize = getWidth() < getHeight() ? getWidth() : getHeight();
-//				shapeSize = shapeSize / 3.5;
-//				Solid tetrahedron = new Solid();
-//				tetrahedron
-//						.addTriangle(
-//								new double[][] { { shapeSize, shapeSize, shapeSize },
-//										{ -shapeSize, -shapeSize, shapeSize }, { -shapeSize, shapeSize, -shapeSize } },
-//								Color.WHITE);
-//				tetrahedron
-//						.addTriangle(
-//								new double[][] { { shapeSize, shapeSize, shapeSize },
-//										{ -shapeSize, -shapeSize, shapeSize }, { shapeSize, -shapeSize, -shapeSize } },
-//								Color.RED);
-//				tetrahedron
-//						.addTriangle(
-//								new double[][] { { -shapeSize, shapeSize, -shapeSize },
-//										{ shapeSize, -shapeSize, -shapeSize }, { shapeSize, shapeSize, shapeSize } },
-//								Color.GREEN);
-//				tetrahedron
-//						.addTriangle(
-//								new double[][] { { -shapeSize, shapeSize, -shapeSize },
-//										{ shapeSize, -shapeSize, -shapeSize }, { -shapeSize, -shapeSize, shapeSize } },
-//								Color.BLUE);
-
-				
-				
-				// transform solid. doing the rotations one at a time is inefficient, but it is
-				// simpler
-				//tetrahedron.triangles = inflate(inflate(inflate(tetrahedron.triangles, shapeSize),shapeSize),shapeSize);
-				double heading = Math.toRadians(headingSlider.getValue()) * 2;
-				Solid rotatedShape = shape.getRotatedSolid(heading, "XY");
-				double pitch = Math.toRadians(pitchSlider.getValue()) * 2;
-				rotatedShape = rotatedShape.getRotatedSolid(pitch, "YZ");
-
-				drawSolid(rotatedShape, g2);
-			}
-		};
+		RendererPanel renderPanel = new RendererPanel(shape);
 		pane.add(renderPanel, BorderLayout.CENTER);
-
-		// add listeners
-		headingSlider.addChangeListener(e -> renderPanel.repaint());
-		pitchSlider.addChangeListener(e -> renderPanel.repaint());
 
 		// show frame
 		frame.setSize(400, 400);
 		frame.setVisible(true);
-	}
-
-	public static void drawSolid(Solid solid, Graphics2D g2) {
-		g2.translate(g2.getClipBounds().getWidth() / 2, g2.getClipBounds().getHeight() / 2);
-		g2.setColor(Color.WHITE);
-
-		ZPair[] zPairs = new ZPair[solid.triangles.size()];
-		int i = 0;
-		for (Triangle t : solid.triangles) {
-			zPairs[i] = new ZPair(t, (t.v1.z + t.v2.z + t.v3.z) / 3);
-			i++;
-		}
-
-		Arrays.sort(zPairs);
-
-		for (ZPair zPair : zPairs) {
-			Polygon triangle = new Polygon();
-			Triangle t = zPair.getTriangle();
-			triangle.addPoint((int) (t.v1.x + .5), (int) (t.v1.y + .5));
-			triangle.addPoint((int) (t.v2.x + .5), (int) (t.v2.y + .5));
-			triangle.addPoint((int) (t.v3.x + .5), (int) (t.v3.y + .5));
-
-			// get normal vector for flat shading
-			Vertex norm = t.getNorm();
-			// get angle between light and norm
-			Vertex lightVector = new Vertex(0, 0, 1);
-			double cosTheta = norm.x * lightVector.x + norm.y * lightVector.y + norm.z * lightVector.z;
-			double magCosTheta = Math.sqrt(
-					lightVector.x * lightVector.x + lightVector.y * lightVector.y + lightVector.z * lightVector.z);
-			cosTheta = cosTheta / magCosTheta;
-			// get color
-			Color color = getShade(t.color, Math.abs(cosTheta));
-			g2.setColor(color);
-			g2.fillPolygon(triangle);
-		}
-	}
-
-	/**
-	 * Approximates conversion to sRGB.
-	 */
-	public static Color getShade(Color color, double cosTheta) {
-		double redLinear = Math.pow(color.getRed(), 2.4) * cosTheta;
-		double greenLinear = Math.pow(color.getGreen(), 2.4) * cosTheta;
-		double blueLinear = Math.pow(color.getBlue(), 2.4) * cosTheta;
-
-		int red = (int) Math.pow(redLinear, 1 / 2.4);
-		int green = (int) Math.pow(greenLinear, 1 / 2.4);
-		int blue = (int) Math.pow(blueLinear, 1 / 2.4);
-		return new Color(red, green, blue);
 	}
 
 	public static ArrayList<Triangle> inflate(ArrayList<Triangle> tris, double size) {
@@ -168,14 +54,5 @@ public class Viewer {
 			}
 		}
 		return result;
-	}
-	
-	public static double getSizeRatio(double size, double[] arrrayToFit) {
-		size = size / 2;
-		ArrayList<Double> bounds = new ArrayList<Double>(arrrayToFit.length);
-		for (Double num : arrrayToFit) {
-			bounds.add(Math.abs(num));
-		}
-		return size / Collections.max(bounds);
 	}
 }

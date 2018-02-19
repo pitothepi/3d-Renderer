@@ -65,6 +65,7 @@ public class STL {
 					e.printStackTrace();
 				}
 		}
+		solid.recenter();
 		return solid;
 	}
 
