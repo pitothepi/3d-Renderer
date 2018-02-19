@@ -51,12 +51,12 @@ public class RendererPanel extends JPanel {
 		pitch += increment;
 		repaint();
 	}
-	
+
 	public void setHeading(double heading) {
 		this.heading = heading;
 		repaint();
 	}
-	
+
 	public void setPitch(double pitch) {
 		this.pitch = pitch;
 		repaint();
@@ -142,28 +142,41 @@ public class RendererPanel extends JPanel {
 			repaint();
 		}
 	}
-	
+
 	private class DragListener extends MouseInputAdapter {
-	    private int oldX;
-	    private int oldY;
-		
+		private int oldX;
+		private int oldY;
+		private int currentButtonDown;
+
 		public void mousePressed(MouseEvent e) {
-	        oldX = e.getX();
-	        oldY = e.getY();
-	        System.out.println("mouse clicked");
-	    }
+			if (e.getButton() == MouseEvent.BUTTON1) {
+				oldX = e.getX();
+				oldY = e.getY();
+				System.out.println("mouse clicked");
+			} else if (e.getButton() == MouseEvent.BUTTON3) {
+				if (solid.getIsFancyColor()) {
+					solid = Solid.defaultColor(solid);
+				} else {
+					solid = Solid.fancyColor(solid);
+				}
+				repaint();
+			}
+			currentButtonDown = e.getButton();
+		}
 
-	    public void mouseDragged(MouseEvent e) {
-	        int deltaX = e.getX() - oldX;
-	        int deltaY = e.getY() - oldY;
-	        oldX = e.getX();
-	        oldY = e.getY();
-	        incrementHeading(deltaX);
-	        incrementPitch(-deltaY);
-	    }
+		public void mouseDragged(MouseEvent e) {
+			if (currentButtonDown == MouseEvent.BUTTON1) {
+				int deltaX = e.getX() - oldX;
+				int deltaY = e.getY() - oldY;
+				oldX = e.getX();
+				oldY = e.getY();
+				incrementHeading(deltaX);
+				incrementPitch(-deltaY);
+			}
+		}
 
-	    public void mouseReleased(MouseEvent e) {
+		public void mouseReleased(MouseEvent e) {
 
-	    }
+		}
 	}
 }

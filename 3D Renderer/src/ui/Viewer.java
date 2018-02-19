@@ -11,11 +11,20 @@ import java.util.ArrayList;
 
 import shape.Solid;
 
-public class Viewer {
+public class Viewer extends Component {
+	private static final long serialVersionUID = 1L;
 	private String fileName;
+
+	public Viewer() {
+		// do nothing
+	}
 
 	public Viewer(String fileName) {
 		this.fileName = fileName;
+	}
+
+	public void setFileName(String filename) {
+		this.fileName = filename;
 	}
 
 	public void start() {
@@ -24,7 +33,7 @@ public class Viewer {
 		JFrame frame = new JFrame();
 		Container pane = frame.getContentPane();
 		pane.setLayout(new BorderLayout());
-		
+
 		// panel to display render results
 		RendererPanel renderPanel = new RendererPanel(shape);
 		pane.add(renderPanel, BorderLayout.CENTER);

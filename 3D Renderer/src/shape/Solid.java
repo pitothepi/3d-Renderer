@@ -16,6 +16,7 @@ public class Solid {
 	private double maxY = Double.NEGATIVE_INFINITY;
 	private double minZ = Double.POSITIVE_INFINITY;
 	private double maxZ = Double.NEGATIVE_INFINITY;
+	private boolean isFancyColor = false;
 
 	public Solid() {
 		this(new ArrayList<Triangle>());
@@ -143,6 +144,7 @@ public class Solid {
 				maxZ = triangle.v3.z;
 		}
 	}
+
 	public void recenter() {
 		double[] bounds = getBounds();
 		double midX = (bounds[0] + bounds[1]) / 2;
@@ -153,5 +155,42 @@ public class Solid {
 			triangles.get(i).v2 = matrixMath.Translate.translate(triangles.get(i).v2, -midX, -midY, -midZ);
 			triangles.get(i).v3 = matrixMath.Translate.translate(triangles.get(i).v3, -midX, -midY, -midZ);
 		}
+	}
+
+	public static Solid fancyColor(Solid shape) {
+		double[] bounds = shape.getBounds();
+		double oldXMin = bounds[0];
+		double oldYMin = bounds[2];
+		double oldZMin = bounds[4];
+		bounds = new double[] { bounds[0] - bounds[0], bounds[1] - bounds[0], bounds[2] - bounds[2],
+				bounds[3] - bounds[2], bounds[4] - bounds[4], bounds[5] - bounds[4] };
+		for (int i = 0; i < shape.triangles.size(); i++) {
+			double avgX = (shape.triangles.get(i).v1.x + shape.triangles.get(i).v2.x + shape.triangles.get(i).v3.x) / 3 - oldXMin;
+			int red = (int) (avgX / bounds[1] * 255 + .5);
+			double avgY = (shape.triangles.get(i).v1.y + shape.triangles.get(i).v2.y + shape.triangles.get(i).v3.y) / 3 - oldYMin;
+			int green = (int) (avgY / bounds[3] * 255 + .5);
+			double avgZ = (shape.triangles.get(i).v1.z + shape.triangles.get(i).v2.z + shape.triangles.get(i).v3.z) / 3 - oldZMin;
+			int blue = (int) (avgZ / bounds[5] * 255 + .5);
+			Color color = new Color(red, green, blue);
+			shape.triangles.get(i).color = color;
+		}
+		shape.setIsFancyColor(true);
+		return shape;
+	}
+
+	public static Solid defaultColor(Solid shape) {
+		for (int i = 0; i < shape.triangles.size(); i++) {
+			shape.triangles.get(i).color = shape.defaultColor;
+		}
+		shape.setIsFancyColor(false);
+		return shape;
+	}
+
+	public void setIsFancyColor(boolean is) {
+		isFancyColor = is;
+	}
+
+	public boolean getIsFancyColor() {
+		return isFancyColor;
 	}
 }
