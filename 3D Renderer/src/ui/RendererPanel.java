@@ -6,6 +6,8 @@ import java.awt.Graphics2D;
 import java.awt.Polygon;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +30,7 @@ public class RendererPanel extends JPanel {
 	private double heading;
 	private double pitch;
 	private double shapeSize;
+	private boolean drawWires;
 
 	public RendererPanel(Solid solid) {
 		this.startSolid = solid;
@@ -36,19 +39,32 @@ public class RendererPanel extends JPanel {
 		DragListener dragListener = new DragListener();
 		this.addMouseListener(dragListener);
 		this.addMouseMotionListener(dragListener);
-		heading = 180;
+		this.addKeyListener(new KeyboardListener());
+		heading = 0;
 		pitch = 0;
+		drawWires = false;
 	}
 
 	public void incrementHeading(double increment) {
 		increment = increment / shapeSize * MOVEMENT_MULTIPLIER;
 		heading += increment;
+		if (heading > 360) {
+			heading -= 360;
+		} else if (heading < 0) {
+			heading += 360;
+		}
 		repaint();
 	}
 
 	public void incrementPitch(double increment) {
 		increment = increment / shapeSize * MOVEMENT_MULTIPLIER;
 		pitch += increment;
+
+		if (pitch > 360) {
+			pitch -= 360;
+		} else if (pitch < 0) {
+			pitch += 360;
+		}
 		repaint();
 	}
 
@@ -63,6 +79,7 @@ public class RendererPanel extends JPanel {
 	}
 
 	public void paintComponent(Graphics g) {
+		System.out.println("");
 		Graphics2D g2 = (Graphics2D) g;
 		g2.setColor(Color.BLACK);
 		g2.fillRect(0, 0, getWidth(), getHeight());
@@ -111,10 +128,23 @@ public class RendererPanel extends JPanel {
 					lightVector.x * lightVector.x + lightVector.y * lightVector.y + lightVector.z * lightVector.z);
 			cosTheta = cosTheta / magCosTheta;
 			// get color
-			Color color = getShade(t.color, Math.abs(cosTheta));
+			Color color = getShade(new Color(t.color.getRed(), t.color.getGreen(), t.color.getBlue(), 1),
+					Math.abs(cosTheta));
 			g2.setColor(color);
 			g2.fillPolygon(triangle);
 		}
+		if (drawWires) {
+			for (Triangle t : solid.triangles) {
+				Polygon triangle = new Polygon();
+				triangle.addPoint((int) (t.v1.x + .5), (int) (t.v1.y + .5));
+				triangle.addPoint((int) (t.v2.x + .5), (int) (t.v2.y + .5));
+				triangle.addPoint((int) (t.v3.x + .5), (int) (t.v3.y + .5));
+
+				g2.setColor(solid.getIsFancyColor() ? Color.BLACK : Color.WHITE);
+				g2.drawPolygon(triangle);
+			}
+		}
+
 	}
 
 	/**
@@ -130,16 +160,31 @@ public class RendererPanel extends JPanel {
 		int blue = (int) Math.pow(blueLinear, 1 / 2.4);
 		return new Color(red, green, blue);
 	}
+	
+	// necessary to goin focus and receive key events
+	@Override
+	public boolean isFocusTraversable() {
+		return true;
+	}
 
-	class ResizeListener extends ComponentAdapter {
+	private class ResizeListener extends ComponentAdapter {
 		public void componentResized(ComponentEvent e) {
 			solid = new Solid(startSolid);
 			shapeSize = getWidth() < getHeight() ? getWidth() : getHeight();
 			double[] bounds = solid.getBounds();
 			double sizeRatio = getSizeRatio(shapeSize, bounds);
 			solid.expand(sizeRatio);
-			System.out.println("render area resized");
 			repaint();
+		}
+	}
+
+	private class KeyboardListener extends KeyAdapter {
+		@Override
+		public void keyPressed(KeyEvent e) {
+			if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+				drawWires = !drawWires;
+				repaint();
+			}
 		}
 	}
 
@@ -152,12 +197,16 @@ public class RendererPanel extends JPanel {
 			if (e.getButton() == MouseEvent.BUTTON1) {
 				oldX = e.getX();
 				oldY = e.getY();
-				System.out.println("mouse clicked");
 			} else if (e.getButton() == MouseEvent.BUTTON3) {
 				if (solid.getIsFancyColor()) {
 					solid = Solid.defaultColor(solid);
 				} else {
 					solid = Solid.fancyColor(solid);
+				}
+				if (startSolid.getIsFancyColor()) {
+					startSolid = Solid.defaultColor(startSolid);
+				} else {
+					startSolid = Solid.fancyColor(startSolid);
 				}
 				repaint();
 			}

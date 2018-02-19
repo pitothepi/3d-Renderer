@@ -31,6 +31,7 @@ public class Viewer extends Component {
 		Solid shape = STL.readBinarySTL(fileName, Color.WHITE);
 
 		JFrame frame = new JFrame();
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		Container pane = frame.getContentPane();
 		pane.setLayout(new BorderLayout());
 

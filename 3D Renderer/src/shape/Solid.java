@@ -16,7 +16,7 @@ public class Solid {
 	private double maxY = Double.NEGATIVE_INFINITY;
 	private double minZ = Double.POSITIVE_INFINITY;
 	private double maxZ = Double.NEGATIVE_INFINITY;
-	private boolean isFancyColor = false;
+	private boolean isFancyColor;
 
 	public Solid() {
 		this(new ArrayList<Triangle>());
@@ -30,6 +30,7 @@ public class Solid {
 		this.triangles = triangles;
 		this.defaultColor = defaultColor;
 		recenter();
+		isFancyColor = false;
 	}
 
 	public Solid(Color defaultColor) {
@@ -43,6 +44,7 @@ public class Solid {
 		}
 		this.defaultColor = new Color(solid.defaultColor.getRed(), solid.defaultColor.getGreen(),
 				solid.defaultColor.getBlue());
+		this.isFancyColor = solid.getIsFancyColor();
 	}
 
 	public void addTriangle(double[][] verticies) {

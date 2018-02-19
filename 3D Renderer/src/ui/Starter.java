@@ -11,7 +11,7 @@ public class Starter {
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
 			viewer.setFileName(fc.getSelectedFile().getPath());
 		} else {
-			viewer.setFileName("models/fallout 3 helmet.stl");
+			viewer.setFileName("models/fallout 4 helmet.stl");
 		}
 		
 		viewer.start();
