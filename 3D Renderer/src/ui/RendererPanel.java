@@ -26,14 +26,14 @@ public class RendererPanel extends JPanel {
 	/** number used to determine rotation speed on drag **/
 	private static final double MOVEMENT_MULTIPLIER = 200;
 	private Solid solid;
-	private Solid startSolid;
+	//private Solid startSolid;
 	private double deltaHeading;
 	private double deltaPitch;
 	private boolean drawWires;
 	private int oldSize;
 
 	public RendererPanel(Solid solid) {
-		this.startSolid = solid;
+		//this.startSolid = solid;
 		this.solid = new Solid(solid);
 		this.addComponentListener(new ResizeListener());
 		DragListener dragListener = new DragListener();
@@ -152,7 +152,20 @@ public class RendererPanel extends JPanel {
 				triangle.addPoint((int) (t.v2.x + .5), (int) (t.v2.y + .5));
 				triangle.addPoint((int) (t.v3.x + .5), (int) (t.v3.y + .5));
 
-				g2.setColor(solid.getIsFancyColor() ? Color.BLACK : Color.WHITE);
+				switch (solid.getColorMode()) {
+				case Solid.DEFAULT_COLOR:
+					g2.setColor(Color.WHITE);
+					break;
+				case Solid.FANCY_COLOR:
+					g2.setColor(Color.BLACK);
+					break;
+				case Solid.SLOPE_COLOR:
+					g2.setColor(Color.BLACK);
+					break;
+				default:
+					g2.setColor(Color.WHITE);
+					break;
+				}
 				g2.drawPolygon(triangle);
 			}
 		}
@@ -197,10 +210,17 @@ public class RendererPanel extends JPanel {
 	private class KeyboardListener extends KeyAdapter {
 		@Override
 		public void keyPressed(KeyEvent e) {
-			if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-				drawWires = !drawWires;
-				repaint();
+			switch (e.getKeyCode()) {
+			case KeyEvent.VK_D:
+				solid.reColor(Solid.DEFAULT_COLOR);
+				break;
+			case KeyEvent.VK_F:
+				solid.reColor(Solid.FANCY_COLOR);
+				break;
+			default:
+				return;
 			}
+			repaint();
 		}
 	}
 
@@ -214,16 +234,7 @@ public class RendererPanel extends JPanel {
 				oldX = e.getX();
 				oldY = e.getY();
 			} else if (e.getButton() == MouseEvent.BUTTON3) {
-				if (solid.getIsFancyColor()) {
-					solid = Solid.defaultColor(solid);
-				} else {
-					solid = Solid.fancyColor(solid);
-				}
-				if (startSolid.getIsFancyColor()) {
-					startSolid = Solid.defaultColor(startSolid);
-				} else {
-					startSolid = Solid.fancyColor(startSolid);
-				}
+				drawWires = !drawWires;
 				repaint();
 			}
 			currentButtonDown = e.getButton();

@@ -16,7 +16,10 @@ public class Solid {
 	private double maxY = Double.NEGATIVE_INFINITY;
 	private double minZ = Double.POSITIVE_INFINITY;
 	private double maxZ = Double.NEGATIVE_INFINITY;
-	private boolean isFancyColor;
+	private String colorMode;
+	public static final String DEFAULT_COLOR = "default";
+	public static final String FANCY_COLOR = "fancy";
+	public static final String SLOPE_COLOR = "slope";
 
 	public Solid() {
 		this(new ArrayList<Triangle>());
@@ -30,7 +33,7 @@ public class Solid {
 		this.triangles = triangles;
 		this.defaultColor = defaultColor;
 		recenter();
-		isFancyColor = false;
+		colorMode = DEFAULT_COLOR;
 	}
 
 	public Solid(Color defaultColor) {
@@ -44,7 +47,7 @@ public class Solid {
 		}
 		this.defaultColor = new Color(solid.defaultColor.getRed(), solid.defaultColor.getGreen(),
 				solid.defaultColor.getBlue());
-		this.isFancyColor = solid.getIsFancyColor();
+		this.colorMode = solid.getColorMode();
 	}
 
 	public void addTriangle(double[][] verticies) {
@@ -159,40 +162,48 @@ public class Solid {
 		}
 	}
 
-	public static Solid fancyColor(Solid shape) {
-		double[] bounds = shape.getBounds();
+	public void reColor(String colorMode) {
+		if(this.colorMode.equals(colorMode)) {
+			return;
+		}
+		switch (colorMode) {
+		case DEFAULT_COLOR:
+			defaultColor();
+			break;
+		case FANCY_COLOR:
+			fancyColor();
+			break;
+		}
+	}
+
+	private void defaultColor() {
+		for (int i = 0; i < triangles.size(); i++) {
+			triangles.get(i).color = defaultColor;
+		}
+		colorMode = DEFAULT_COLOR;
+	}
+
+	private void fancyColor() {
+		double[] bounds = getBounds();
 		double oldXMin = bounds[0];
 		double oldYMin = bounds[2];
 		double oldZMin = bounds[4];
 		bounds = new double[] { bounds[0] - bounds[0], bounds[1] - bounds[0], bounds[2] - bounds[2],
 				bounds[3] - bounds[2], bounds[4] - bounds[4], bounds[5] - bounds[4] };
-		for (int i = 0; i < shape.triangles.size(); i++) {
-			double avgX = (shape.triangles.get(i).v1.x + shape.triangles.get(i).v2.x + shape.triangles.get(i).v3.x) / 3 - oldXMin;
+		for (int i = 0; i < triangles.size(); i++) {
+			double avgX = (triangles.get(i).v1.x + triangles.get(i).v2.x + triangles.get(i).v3.x) / 3 - oldXMin;
 			int red = (int) (avgX / bounds[1] * 255 + .5);
-			double avgY = (shape.triangles.get(i).v1.y + shape.triangles.get(i).v2.y + shape.triangles.get(i).v3.y) / 3 - oldYMin;
+			double avgY = (triangles.get(i).v1.y + triangles.get(i).v2.y + triangles.get(i).v3.y) / 3 - oldYMin;
 			int green = (int) (avgY / bounds[3] * 255 + .5);
-			double avgZ = (shape.triangles.get(i).v1.z + shape.triangles.get(i).v2.z + shape.triangles.get(i).v3.z) / 3 - oldZMin;
+			double avgZ = (triangles.get(i).v1.z + triangles.get(i).v2.z + triangles.get(i).v3.z) / 3 - oldZMin;
 			int blue = (int) (avgZ / bounds[5] * 255 + .5);
 			Color color = new Color(red, green, blue);
-			shape.triangles.get(i).color = color;
+			triangles.get(i).color = color;
 		}
-		shape.setIsFancyColor(true);
-		return shape;
+		colorMode = FANCY_COLOR;
 	}
-
-	public static Solid defaultColor(Solid shape) {
-		for (int i = 0; i < shape.triangles.size(); i++) {
-			shape.triangles.get(i).color = shape.defaultColor;
-		}
-		shape.setIsFancyColor(false);
-		return shape;
-	}
-
-	public void setIsFancyColor(boolean is) {
-		isFancyColor = is;
-	}
-
-	public boolean getIsFancyColor() {
-		return isFancyColor;
+	
+	public String getColorMode() {
+		return colorMode;
 	}
 }
