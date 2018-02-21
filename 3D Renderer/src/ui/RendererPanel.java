@@ -27,10 +27,10 @@ public class RendererPanel extends JPanel {
 	private static final double MOVEMENT_MULTIPLIER = 200;
 	private Solid solid;
 	private Solid startSolid;
-	private double heading;
-	private double pitch;
-	private double shapeSize;
+	private double deltaHeading;
+	private double deltaPitch;
 	private boolean drawWires;
+	private int oldSize;
 
 	public RendererPanel(Solid solid) {
 		this.startSolid = solid;
@@ -40,54 +40,62 @@ public class RendererPanel extends JPanel {
 		this.addMouseListener(dragListener);
 		this.addMouseMotionListener(dragListener);
 		this.addKeyListener(new KeyboardListener());
-		heading = 0;
-		pitch = 0;
+		deltaHeading = 0;
+		deltaPitch = 0;
 		drawWires = false;
+		oldSize = getSmallerDimension();
 	}
 
 	public void incrementHeading(double increment) {
-		increment = increment / shapeSize * MOVEMENT_MULTIPLIER;
-		heading += increment;
-		if (heading > 360) {
-			heading -= 360;
-		} else if (heading < 0) {
-			heading += 360;
+		increment = increment / oldSize * MOVEMENT_MULTIPLIER;
+		deltaHeading += increment;
+		if (deltaHeading > 360) {
+			deltaHeading -= 360;
+		} else if (deltaHeading < 0) {
+			deltaHeading += 360;
 		}
 		repaint();
 	}
 
 	public void incrementPitch(double increment) {
-		increment = increment / shapeSize * MOVEMENT_MULTIPLIER;
-		pitch += increment;
+		increment = increment / oldSize * MOVEMENT_MULTIPLIER;
+		deltaPitch += increment;
 
-		if (pitch > 360) {
-			pitch -= 360;
-		} else if (pitch < 0) {
-			pitch += 360;
+		if (deltaPitch > 360) {
+			deltaPitch -= 360;
+		} else if (deltaPitch < 0) {
+			deltaPitch += 360;
 		}
 		repaint();
 	}
 
 	public void setHeading(double heading) {
-		this.heading = heading;
+		this.deltaHeading = heading;
 		repaint();
 	}
 
 	public void setPitch(double pitch) {
-		this.pitch = pitch;
+		this.deltaPitch = pitch;
 		repaint();
 	}
 
 	public void paintComponent(Graphics g) {
-		System.out.println("");
+		System.out.println(deltaHeading + deltaPitch);
+		System.out.println(solid.getBounds()[1]);
 		Graphics2D g2 = (Graphics2D) g;
 		g2.setColor(Color.BLACK);
 		g2.fillRect(0, 0, getWidth(), getHeight());
 
-		Solid rotatedShape = solid.getRotatedSolid(Math.toRadians(heading), "XY");
-		rotatedShape = rotatedShape.getRotatedSolid(Math.toRadians(pitch), "YZ");
+		if (Math.abs(deltaHeading) > 0) {
+			solid = solid.getRotatedSolid(Math.toRadians(deltaHeading), "XY");
+		}
+		if (Math.abs(deltaPitch) > 0) {
+			solid = solid.getRotatedSolid(Math.toRadians(deltaPitch), "YZ");
+		}
+		deltaHeading = 0;
+		deltaPitch = 0;
 
-		drawSolid(rotatedShape, g2);
+		drawSolid(solid, g2);
 	}
 
 	private double getSizeRatio(double size, double[] arrrayToFit) {
@@ -97,6 +105,10 @@ public class RendererPanel extends JPanel {
 			bounds.add(Math.abs(num));
 		}
 		return size / Collections.max(bounds);
+	}
+
+	private int getSmallerDimension() {
+		return getWidth() < getHeight() ? getWidth() : getHeight();
 	}
 
 	private void drawSolid(Solid solid, Graphics2D g2) {
@@ -160,7 +172,7 @@ public class RendererPanel extends JPanel {
 		int blue = (int) Math.pow(blueLinear, 1 / 2.4);
 		return new Color(red, green, blue);
 	}
-	
+
 	// necessary to goin focus and receive key events
 	@Override
 	public boolean isFocusTraversable() {
@@ -169,11 +181,15 @@ public class RendererPanel extends JPanel {
 
 	private class ResizeListener extends ComponentAdapter {
 		public void componentResized(ComponentEvent e) {
-			solid = new Solid(startSolid);
-			shapeSize = getWidth() < getHeight() ? getWidth() : getHeight();
-			double[] bounds = solid.getBounds();
-			double sizeRatio = getSizeRatio(shapeSize, bounds);
-			solid.expand(sizeRatio);
+			if (oldSize == 0) {
+				double[] bounds = solid.getBounds();
+				double sizeRatio = getSizeRatio(getSmallerDimension(), bounds);
+				solid.expand(sizeRatio);
+				oldSize = getSmallerDimension();
+			} else {
+				solid.expand((double) (getSmallerDimension()) / oldSize);
+				oldSize = getSmallerDimension();
+			}
 			repaint();
 		}
 	}
