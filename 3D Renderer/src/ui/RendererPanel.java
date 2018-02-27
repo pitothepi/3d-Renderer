@@ -217,6 +217,9 @@ public class RendererPanel extends JPanel {
 			case KeyEvent.VK_F:
 				solid.reColor(Solid.FANCY_COLOR);
 				break;
+			case KeyEvent.VK_S:
+				solid.reColor(Solid.SLOPE_COLOR);
+				break;
 			default:
 				return;
 			}

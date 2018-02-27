@@ -2,6 +2,7 @@ package shape;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import matrixMath.Rotate;
 import node.*;
@@ -163,7 +164,7 @@ public class Solid {
 	}
 
 	public void reColor(String colorMode) {
-		if(this.colorMode.equals(colorMode)) {
+		if (this.colorMode.equals(colorMode)) {
 			return;
 		}
 		switch (colorMode) {
@@ -172,6 +173,9 @@ public class Solid {
 			break;
 		case FANCY_COLOR:
 			fancyColor();
+			break;
+		case SLOPE_COLOR:
+			slopeColor();
 			break;
 		}
 	}
@@ -202,7 +206,29 @@ public class Solid {
 		}
 		colorMode = FANCY_COLOR;
 	}
-	
+
+	private void slopeColor() {
+		for (int i = 0; i < triangles.size(); i++) {
+			// this part is extra lazy
+			double[] xs = { triangles.get(i).v1.x, triangles.get(i).v2.x, triangles.get(i).v3.x };
+			double[] ys = { triangles.get(i).v1.y, triangles.get(i).v2.y, triangles.get(i).v3.y };
+			double[] zs = { triangles.get(i).v1.z, triangles.get(i).v2.z, triangles.get(i).v3.z };
+			Arrays.sort(xs);
+			Arrays.sort(ys);
+			Arrays.sort(zs);
+			double dx = Math.abs(xs[2] - xs[0]);
+			double dy = Math.abs(ys[2] - ys[0]);
+			double dz = Math.abs(zs[2] - zs[0]);
+			double yxAngle = Math.abs(Math.atan(dy / dx));
+			double yzAngle = Math.abs(Math.atan(dy / dz));
+			double angle = yxAngle > yzAngle ? yzAngle : yzAngle;
+			double red = angle / (Math.PI / 2) * 255;
+			System.out.println(angle + " : " + red);
+			triangles.get(i).color = new Color(255, 255 - (int) (red + .5), 255 - (int) (red + .5));
+		}
+		colorMode = SLOPE_COLOR;
+	}
+
 	public String getColorMode() {
 		return colorMode;
 	}
